@@ -1,0 +1,73 @@
+# G1 geometry/poses from robotic_US_guided_surgery_G1_pink.{py,yaml}.
+robot:
+  type: g1
+  pos: [0.1, -0.69, 1.1]
+  yaw: 90.0
+  height: 0.13
+  height_img: 0.137
+patient:
+  pos: [0.2, -0.55, 1.10]
+  euler_yxz: [-90.0, -80.0, 0.0]
+  id: s0034  # One patient per run; environments are independent repeats.
+  label_res: 0.0015
+  target_anatomy: vertebrae_L4
+bed:
+  pos: [0.0, -0.15, 0.5]
+  euler_xyz: [90.0, 0.0, 90.0]
+  scale: 0.0008
+sim:
+  dt: 0.008333333333333333  # Training physics: 1/120 s.
+  num_envs: 16
+  env_spacing: 4.0
+  pre_steps: 100
+  episode_seconds: 10.0  # Exploration only, after pre-positioning.
+  seed: 42
+  centered_ranges: true
+  patient_xz_range: [[100, 80, 1.0], [180, 170, 3.0]]
+  patient_xz_init_range: [[100, 80, 1.5], [180, 170, 3.0]]
+  # With centered_ranges=true, x/z limits come from patient_us_ranges.yaml,
+  # using the exact axis ordering in the training script; angles remain above.
+probe:
+  motion_scale: [[5, 5, 0.1]]  # GTDiscreteMotionGenerator, as in navigation YAML.
+  fixed_angle_rad: 1.57  # Constant command throughout positioning and exploration.
+  roll_adj: -0.4
+  # Random piecewise-constant velocities in command coordinates (voxels/s, rad/s).
+  # New exploration settings, not drilling-action scales from training.
+  velocity_max: [9.0, 9.0, 0.0]
+  command_hold_seconds: 0.2
+drill:
+  tip_along_z_m: 0.02
+  tip_along_z_noise_m: 0.01  # Uniform +/- 1 cm, sampled once per env/episode.
+  wrist_to_tip_pos: [0.305, 0.0, 0.0]
+  # Local tip +Z aligned with the physical wrist-to-tip offset (+X).
+  wrist_to_tip_euler_YXZ: [90.0, 0.0, 90.0]
+  trajectory_direction_sign: 1  # +Z follows traj_drct; -1 reverses dataset direction.
+ik:
+  solver: quadprog
+  damping: 0.01
+  probe_position_cost: 1.0
+  probe_orientation_cost: 1.0
+  drill_position_cost: 10.0  # Tip position task, weighted above probe tracking.
+  drill_orientation_cost: 1.0
+  joint_margin: 0.001
+mapping:
+  bins: [16, 16, 1]  # Slightly coarser 2D grid; aggregate before interpolation.
+  center_xz_voxels: [-30.0, 0.0]  # Display only: midpoint of the explored range.
+  # PNG axes in mm, same limits and ticks as CEM mappa.py.
+  plot_xlim_mm: [-85.0, -10.0]
+  plot_ylim_mm: [-42.0, 42.0]
+  plot_xticks_mm: [-80, -60, -40, -20]
+  plot_yticks_mm: [-40, -20, 0, 20, 40]
+  # CEM mappa.py multiplies voxel shifts by 1.5: this center is (-45, 0) mm.
+  # NPZ includes x_mm/z_mm plus original absolute axes/bounds.
+  # Yoshikawa from the full pose Jacobian (linear m, angular rad), same robot only.
+  # Optional: drill_constrained projects onto the fixed-drill Jacobian nullspace.
+  metric: yoshikawa
+  probe_position_tolerance_m: 0.003  # Diagnostic only; no probe rejection.
+  probe_angle_tolerance_deg: 3.0  # Diagnostic only; map uses measured pose.
+  drill_position_tolerance_m: 0.01
+  drill_angle_tolerance_deg: 2.0
+  min_cell_samples: 1
+  max_interpolation_distance_cells: 3.0
+  # Linear interpolation only inside sampled convex hull; never extrapolate.
+  png: true
