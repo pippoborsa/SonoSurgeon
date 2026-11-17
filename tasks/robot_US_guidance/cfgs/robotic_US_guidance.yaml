@@ -1,0 +1,61 @@
+robot:
+  type: 'kuka'  # 'kuka', fr3
+  pos: [0.0, -0.5, 0.0]
+  joint_pos: [1.5, -0.5, 0.0, -1.0, 0.0, 1.6, 0.0]
+
+patient:
+  pos: [0.2, -0.2, 0.7]
+  euler_yxz: [-90.0, -90.0, 0.0]
+  id_list: ['s0028'] #['s0015', 's0024', 's0028', 's0029', 's0030'] # ['s0010'] # 's0010', 's0014', 's0015'
+  label_res: 0.0015 # m
+  target_anatomy: 'vertebrae_L4'
+
+bed:
+  pos: [0.0, 0.0, 0.08]
+  euler_xyz: [90, 0.0, 90]
+  scale: 0.0004
+
+#Dual KUKA run p10: best score=80.1976, target=(-28.6933, -15.9067, 1.577)
+#Dual KUKA run p15: best score=81.2588, target=(-29.5267, -8.5400, 1.573)
+#Dual KUKA run p28: best score=81.7071, target=(-22.4267, -10.1067, 1.630)
+#Dual KUKA run p30: best score=63.3259, target=(-20.8600, 1.1733, 1.570)
+#Dual KUKA run p34: best score=82.2054, target=(-25.4533, -2.2733, 1.511)
+
+
+motion_planning:
+  vertebra_to_US_2d_pos: [-29.5, -8.5] 
+  US_target_2d_angle: 1.57 # 1.57 
+  US_roll_adj: -0.4
+  patient_xz_goal: [150, 170, 3.14]
+  use_vertebra_goal: True
+  scale: [[5, 5, 0.1]]
+
+observation:
+  3D: False
+  mode: 'US' # 'seg', 'CT', 'US'
+  scale: 0.02 # 0.02 for datacollection, 0.1 for learning-based
+  scale_net: 0.1
+
+action:
+  mode: 'continuous' # 'discrete', 'continuous'
+  scale: [0.5, 0.5, 0.05] # [0.00002, 0.00002, 0.0001] #
+  max_action: [1.0, 1.0, 0.1]
+
+reward:
+  w_pos: 0.03
+
+sim:
+  centered_ranges: false
+  episode_length: 4
+  patient_xz_range: [[85, 100, 1.0], [125, 155, 3.0]]
+  patient_xz_init_range: [[90, 110, 1.5], [120, 150, 3.0]]
+  if_use_ct: True
+  ct_range: [-300, 3000]
+  us: 'conv' # 'conv', 'net', 'both'
+  vis_us: True
+  vis_int: 5
+  vis_seg_map: False
+
+
+if_record_traj: True
+record_path: /recordings/robot_US_guidance/
